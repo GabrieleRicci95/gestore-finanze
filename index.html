@@ -3,270 +3,466 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestore Finanze PRO</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Mini CRM Dashboard</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* [CSS Variables & Reset] */
         :root {
-            --bg: #f3f4f6;
+            --sidebar-bg: #111827;
+            --sidebar-hover: #1f2937;
+            --main-bg: #f3f4f6;
             --card-bg: #ffffff;
-            --text-main: #1f2937;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --text-dark: #1f2937;
             --text-muted: #6b7280;
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
+            --border: #e5e7eb;
             --success: #10b981;
+            --warning: #f59e0b;
             --danger: #ef4444;
         }
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            margin-top: 20px;
-        }
-        h2 {
-            text-align: center;
-            color: var(--text-main);
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-        /* --- CARDS --- */
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .balance-card {
-            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-            color: white;
-            text-align: center;
-            padding: 30px 20px;
-        }
-        .balance-title {
-            font-size: 1rem;
-            opacity: 0.8;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .balance-amount {
-            font-size: 3rem;
-            font-weight: 600;
-            margin: 10px 0;
-        }
-        .summary {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-        }
-        .summary div { width: 50%; }
-        .summary-title { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;}
-        .summary-val { font-size: 1.2rem; font-weight: 600; margin:0;}
-        .val-plus { color: #a7f3d0; } 
-        .val-minus { color: #fecaca; } 
-        /* --- FORM --- */
-        .form-group {
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 5px;
-            color: var(--text-muted);
-        }
-        input {
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-family: inherit;
-            outline: none;
-            transition: border 0.3s;
-        }
-        input:focus { border-color: var(--primary); }
-        .btn {
-            width: 100%;
-            padding: 12px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-family: inherit;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.3s;
-            margin-top: 10px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { display: flex; min-height: 100vh; background-color: var(--main-bg); color: var(--text-dark); overflow: hidden; }
+        
+        /* [Sidebar] */
+        .sidebar { width: 250px; background: var(--sidebar-bg); color: white; display: flex; flex-direction: column; transition: 0.3s; z-index: 100; }
+        .sidebar-header { padding: 20px; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #374151; }
+        .sidebar-menu { list-style: none; padding: 20px 0; flex: 1; }
+        .sidebar-menu li { padding: 12px 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; color: #9ca3af; font-weight: 500; }
+        .sidebar-menu li:hover, .sidebar-menu li.active { background: var(--sidebar-hover); color: white; border-left: 4px solid var(--primary); }
+        .sidebar-menu li i { width: 20px; text-align: center; }
+        /* [Main Content] */
+        .main-content { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow-y: auto; }
+        
+        /* [Header] */
+        .header { background: var(--card-bg); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+        .header-title { font-size: 1.2rem; font-weight: 600; }
+        .user-profile { display: flex; align-items: center; gap: 10px; font-weight: 500; cursor: pointer; }
+        .user-profile img { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); }
+        /* [Views Management] */
+        .view-section { padding: 30px; display: none; animation: fadeIn 0.4s ease-in-out; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* [Cards & Grids] */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); border: 1px solid var(--border); display: flex; align-items: center; gap: 20px; transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-icon { width: 55px; height: 55px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 1.5rem; }
+        .icon-blue { background: #dbeafe; color: #2563eb; }
+        .icon-green { background: #d1fae5; color: #059669; }
+        .icon-purple { background: #f3e8ff; color: #7c3aed; }
+        .stat-info h4 { color: var(--text-muted); font-size: 0.9rem; font-weight: 500; }
+        .stat-info h2 { font-size: 1.6rem; font-weight: 700; margin-top: 5px; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-header h3 { font-size: 1.2rem; font-weight: 600; color: var(--text-dark); }
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: 0.2s; font-size: 0.9rem; }
         .btn:hover { background: var(--primary-hover); }
-        /* --- LISTA MOVIMENTI --- */
-        .transaction-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        /* [Table] */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; background: #f9fafb; }
+        tbody tr { transition: background 0.2s; }
+        tbody tr:hover { background: #f3f4f6; }
+        .badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+        .badge.active { background: #d1fae5; color: #059669; }
+        .badge.pending { background: #fef3c7; color: #d97706; }
+        .badge.paid { background: #e0e7ff; color: #4338ca; }
+        .action-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; margin: 0 5px; transition: 0.2s;}
+        .action-btn:hover { color: var(--danger); transform: scale(1.1); }
+        /* [Settings Form] */
+        .settings-form { max-width: 600px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 0.9rem; margin-bottom: 8px; font-weight: 500; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; background: #f9fafb; transition: 0.3s; }
+        .form-group input:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        /* [Modal] */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(3px); }
+        .modal { background: white; padding: 30px; border-radius: 12px; width: 450px; max-width: 90%; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); animation: modalIn 0.3s ease-out; }
+        @keyframes modalIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; align-items: center; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted); transition: color 0.2s; }
+        .close-btn:hover { color: var(--danger); }
+        @media (max-width: 768px) {
+            .sidebar { position: absolute; left: -250px; height: 100vh; }
+            .sidebar.open { left: 0; }
         }
-        .transaction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            border-left: 5px solid;
-            transition: transform 0.2s;
-        }
-        .transaction-item:hover { transform: translateX(5px); }
-        .item-plus { border-left-color: var(--success); }
-        .item-minus { border-left-color: var(--danger); }
-        
-        .item-desc { font-weight: 500; color: var(--text-main); flex: 1; }
-        .item-amount { font-weight: 600; }
-        .amount-plus { color: var(--success); }
-        .amount-minus { color: var(--danger); }
-        
-        .delete-btn {
-            background: #f3f4f6;
-            color: var(--danger);
-            border: none;
-            border-radius: 5px;
-            padding: 5px 10px;
-            cursor: pointer;
-            margin-left: 15px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-        .delete-btn:hover { background: #fee2e2; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>💰 Gestore Finanze</h2>
-        <!-- CARD SALDO TOTALE -->
-        <div class="card balance-card">
-            <p class="balance-title">Saldo Attuale</p>
-            <h1 class="balance-amount" id="balance">€0.00</h1>
-            
-            <div class="summary">
-                <div>
-                    <p class="summary-title">Entrate</p>
-                    <p class="summary-val val-plus" id="money-plus">+€0.00</p>
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-cube" style="color: var(--primary);"></i> CRM Pro
+        </div>
+        <ul class="sidebar-menu">
+            <li class="active" onclick="switchView('dashboard', this, 'Panoramica Generale')"><i class="fas fa-home"></i> Dashboard</li>
+            <li onclick="switchView('clienti', this, 'Gestione Clienti')"><i class="fas fa-users"></i> Clienti</li>
+            <li onclick="switchView('analitiche', this, 'Analitiche e Dati')"><i class="fas fa-chart-pie"></i> Analitiche</li>
+            <li onclick="switchView('fatture', this, 'Archivio Fatture')"><i class="fas fa-file-invoice-dollar"></i> Fatture</li>
+            <li onclick="switchView('impostazioni', this, 'Impostazioni Profilo')"><i class="fas fa-cog"></i> Impostazioni</li>
+        </ul>
+    </div>
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-title" id="page-title">Panoramica Generale</div>
+            <div class="user-profile">
+                <span>Gabriele Ricci</span>
+                <img src="https://ui-avatars.com/api/?name=Gabriele+Ricci&background=3b82f6&color=fff" alt="User">
+            </div>
+        </div>
+        <!-- ============================================== -->
+        <!-- VISTA 1: DASHBOARD -->
+        <!-- ============================================== -->
+        <div id="view-dashboard" class="view-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon icon-blue"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <h4>Clienti Totali</h4>
+                        <h2 id="dash-total-clients">--</h2>
+                    </div>
                 </div>
-                <div>
-                    <p class="summary-title">Uscite</p>
-                    <p class="summary-val val-minus" id="money-minus">-€0.00</p>
+                <div class="stat-card">
+                    <div class="stat-icon icon-green"><i class="fas fa-wallet"></i></div>
+                    <div class="stat-info">
+                        <h4>Fatturato Anno</h4>
+                        <h2>€ 42.500</h2>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon icon-purple"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-info">
+                        <h4>Task Completati</h4>
+                        <h2>128</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Andamento Fatturato (2026)</h3>
+                </div>
+                <!-- Abbassato l'altezza per evitare che il grafico diventi gigante -->
+                <div style="height: 300px; position: relative;">
+                    <canvas id="revenueChart"></canvas>
                 </div>
             </div>
         </div>
-        <!-- FORM INSERIMENTO -->
-        <div class="card">
-            <h3 style="margin-top: 0; margin-bottom: 15px; color: #1f2937;">Nuova Transazione</h3>
-            <form id="form">
+        <!-- ============================================== -->
+        <!-- VISTA 2: CLIENTI -->
+        <!-- ============================================== -->
+        <div id="view-clienti" class="view-section">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Database Clienti</h3>
+                    <button class="btn" onclick="openModal()"><i class="fas fa-plus"></i> Nuovo Cliente</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Azienda / Nome</th>
+                                <th>Email</th>
+                                <th>Telefono</th>
+                                <th>Stato</th>
+                                <th style="text-align: right;">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clients-table-body">
+                            <!-- Generato da JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- ============================================== -->
+        <!-- VISTA 3: ANALITICHE -->
+        <!-- ============================================== -->
+        <div id="view-analitiche" class="view-section">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Distribuzione Clienti</h3>
+                    </div>
+                    <div style="height: 300px; display: flex; justify-content: center;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Report Rapido</h3>
+                    </div>
+                    <p style="color: var(--text-muted); line-height: 1.8;">
+                        Nel mese in corso si registra un incremento del <strong>15%</strong> delle acquisizioni rispetto al trimestre precedente.<br><br>
+                        I clienti nello stato <em>"Attivo"</em> generano attualmente il 78% del fatturato totale.<br><br>
+                        Suggerimento: Concentrarsi sulla conversione dei clienti "In Trattativa".
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- ============================================== -->
+        <!-- VISTA 4: FATTURE -->
+        <!-- ============================================== -->
+        <div id="view-fatture" class="view-section">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Ultime Fatture Emesse</h3>
+                    <button class="btn" style="background: var(--success);"><i class="fas fa-file-invoice"></i> Genera Fattura</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>N. Fattura</th>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th>Importo</th>
+                            <th>Stato</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>#FT-2026-001</td>
+                            <td>12 Mar 2026</td>
+                            <td>Tech Solutions Srl</td>
+                            <td>€ 1.250,00</td>
+                            <td><span class="badge paid">Pagata</span></td>
+                        </tr>
+                        <tr>
+                            <td>#FT-2026-002</td>
+                            <td>05 Apr 2026</td>
+                            <td>Ristorante La Piazzetta</td>
+                            <td>€ 850,00</td>
+                            <td><span class="badge pending">In Attesa</span></td>
+                        </tr>
+                        <tr>
+                            <td>#FT-2026-003</td>
+                            <td>10 Apr 2026</td>
+                            <td>Mario Rossi Architetto</td>
+                            <td>€ 3.400,00</td>
+                            <td><span class="badge paid">Pagata</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- ============================================== -->
+        <!-- VISTA 5: IMPOSTAZIONI -->
+        <!-- ============================================== -->
+        <div id="view-impostazioni" class="view-section">
+            <div class="card settings-form">
+                <div class="card-header">
+                    <h3>Modifica Profilo Amministratore</h3>
+                </div>
+                <form onsubmit="event.preventDefault(); alert('Impostazioni salvate con successo!');">
+                    <div class="form-group">
+                        <label>Nome Completo</label>
+                        <input type="text" value="Gabriele Ricci">
+                    </div>
+                    <div class="form-group">
+                        <label>Indirizzo Email</label>
+                        <input type="email" value="gabrielericci234@gmail.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Ruolo Sistema</label>
+                        <input type="text" value="Full Stack Developer / Admin" disabled style="background: #e5e7eb; color: #6b7280; cursor: not-allowed;">
+                    </div>
+                    <div class="form-group">
+                        <label>Tema Interfaccia</label>
+                        <select>
+                            <option>Chiaro (Predefinito)</option>
+                            <option>Scuro</option>
+                            <option>Sincronizza con Sistema</option>
+                        </select>
+                    </div>
+                    <button class="btn" type="submit">Salva Cambiamenti</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL AGGIUNGI CLIENTE -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 style="margin:0;">Aggiungi Cliente</h3>
+                <button class="close-btn" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <form id="add-client-form">
                 <div class="form-group">
-                    <label for="text">Descrizione (es. Stipendio, Spesa al super)</label>
-                    <input type="text" id="text" placeholder="Cosa hai comprato/guadagnato?" required>
+                    <label>Azienda o Nome Completo</label>
+                    <input type="text" id="client-name" placeholder="Es. Mario SPA" required>
                 </div>
                 <div class="form-group">
-                    <label for="amount">Importo (Usa il segno - per le uscite)</label>
-                    <input type="number" id="amount" placeholder="-50 oppure 1500" step="0.01" required>
+                    <label>Email</label>
+                    <input type="email" id="client-email" placeholder="email@esempio.it" required>
                 </div>
-                <button class="btn" type="submit">Aggiungi Movimento</button>
+                <div class="form-group">
+                    <label>Telefono</label>
+                    <input type="text" id="client-phone" placeholder="Es. 333 1234567" required>
+                </div>
+                <div class="form-group">
+                    <label>Stato</label>
+                    <select id="client-status">
+                        <option value="active">Attivo</option>
+                        <option value="pending">In Trattativa</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn" style="width: 100%; margin-top: 10px;">Salva Cliente</button>
             </form>
         </div>
-        <!-- STORICO MOVIMENTI -->
-        <h3 style="margin-bottom: 15px; color: #1f2937;">Storico Movimenti</h3>
-        <ul id="list" class="transaction-list">
-            <!-- I movimenti verranno generati qui da Javascript -->
-        </ul>
     </div>
-    <!-- LOGICA JAVASCRIPT CON MEMORIA (LOCAL STORAGE) -->
     <script>
-        const balance = document.getElementById('balance');
-        const money_plus = document.getElementById('money-plus');
-        const money_minus = document.getElementById('money-minus');
-        const list = document.getElementById('list');
-        const form = document.getElementById('form');
-        const text = document.getElementById('text');
-        const amount = document.getElementById('amount');
-        // Controlla se ci sono transazioni salvate in memoria
-        const localStorageTransactions = JSON.parse(localStorage.getItem('transactions'));
-        let transactions = localStorage.getItem('transactions') !== null ? localStorageTransactions : [];
-        // Aggiungi nuova transazione
-        function addTransaction(e) {
-            e.preventDefault();
-            if (text.value.trim() === '' || amount.value.trim() === '') {
-                alert('Aggiungi sia una descrizione che un importo');
-            } else {
-                const transaction = {
-                    id: generateID(),
-                    text: text.value,
-                    amount: +amount.value
-                };
-                transactions.push(transaction);
-                addTransactionDOM(transaction);
-                updateValues();
-                updateLocalStorage();
-                text.value = '';
-                amount.value = '';
+        // ==============================================
+        // LOGICA DI NAVIGAZIONE SPA (Single Page Application)
+        // ==============================================
+        function switchView(viewId, menuItem, title) {
+            // Nascondi tutte le sezioni
+            document.querySelectorAll('.view-section').forEach(view => {
+                view.classList.remove('active');
+            });
+            // Mostra la sezione cliccata
+            document.getElementById('view-' + viewId).classList.add('active');
+            // Cambia stato attivo sul menu
+            document.querySelectorAll('.sidebar-menu li').forEach(li => {
+                li.classList.remove('active');
+            });
+            menuItem.classList.add('active');
+            // Aggiorna titolo
+            document.getElementById('page-title').innerText = title;
+        }
+        // ==============================================
+        // GRAFICI (CHART.JS)
+        // ==============================================
+        // 1. Line Chart (Fatturato)
+        const ctxLine = document.getElementById('revenueChart').getContext('2d');
+        new Chart(ctxLine, {
+            type: 'line',
+            data: {
+                labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu'],
+                datasets: [{
+                    label: 'Fatturato (€)',
+                    data: [12000, 15000, 14000, 18000, 22000, 24500],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#3b82f6',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    y: { beginAtZero: true, grid: { borderDash: [5, 5], color: '#e5e7eb' } }, 
+                    x: { grid: { display: false } } 
+                }
+            }
+        });
+        // 2. Pie Chart (Analitiche)
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        let pieChart = new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['Attivi', 'In Trattativa'],
+                datasets: [{
+                    data: [2, 1], // Valori di default, sovrascritti dopo
+                    backgroundColor: ['#10b981', '#f59e0b'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        });
+        // ==============================================
+        // GESTIONE DATI CLIENTI (LOCAL STORAGE)
+        // ==============================================
+        const defaultClients = [
+            { id: 1, name: "Tech Solutions Srl", email: "info@techsolutions.it", phone: "06 1234567", status: "active" },
+            { id: 2, name: "Mario Rossi Architetto", email: "mario.rossi@studio.it", phone: "333 9876543", status: "pending" },
+            { id: 3, name: "Ristorante La Piazzetta", email: "ordini@lapiazzetta.com", phone: "02 7654321", status: "active" },
+            { id: 4, name: "Boutique Bella", email: "shop@bella.com", phone: "06 9876543", status: "active" }
+        ];
+        let clients = JSON.parse(localStorage.getItem('crm_clients_v2'));
+        if (!clients || clients.length === 0) {
+            clients = defaultClients;
+            localStorage.setItem('crm_clients_v2', JSON.stringify(clients));
+        }
+        const tableBody = document.getElementById('clients-table-body');
+        const dashTotalClients = document.getElementById('dash-total-clients');
+        function renderTable() {
+            tableBody.innerHTML = '';
+            let activeCount = 0;
+            let pendingCount = 0;
+            clients.forEach(client => {
+                if(client.status === 'active') activeCount++;
+                if(client.status === 'pending') pendingCount++;
+                const statusBadge = client.status === 'active' 
+                    ? '<span class="badge active">Attivo</span>' 
+                    : '<span class="badge pending">Trattativa</span>';
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="font-weight:600; color: #111827;">${client.name}</td>
+                    <td style="color: #6b7280;">${client.email}</td>
+                    <td style="color: #6b7280;">${client.phone}</td>
+                    <td>${statusBadge}</td>
+                    <td style="text-align: right;">
+                        <button class="action-btn" title="Elimina" onclick="deleteClient(${client.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+            // Aggiorna numero totale dashboard
+            dashTotalClients.textContent = clients.length;
+            // Aggiorna Grafico a Torta in tempo reale
+            pieChart.data.datasets[0].data = [activeCount, pendingCount];
+            pieChart.update();
+        }
+        function deleteClient(id) {
+            if(confirm("Sei sicuro di voler eliminare questo cliente? L'operazione è irreversibile.")) {
+                clients = clients.filter(c => c.id !== id);
+                localStorage.setItem('crm_clients_v2', JSON.stringify(clients));
+                renderTable();
             }
         }
-        // Genera un ID casuale
-        function generateID() { return Math.floor(Math.random() * 100000000); }
-        // Aggiungi la transazione all'interfaccia HTML
-        function addTransactionDOM(transaction) {
-            const sign = transaction.amount < 0 ? '-' : '+';
-            const item = document.createElement('li');
-            item.classList.add('transaction-item');
-            item.classList.add(transaction.amount < 0 ? 'item-minus' : 'item-plus');
-            item.innerHTML = `
-                <span class="item-desc">${transaction.text}</span>
-                <span class="item-amount ${transaction.amount < 0 ? 'amount-minus' : 'amount-plus'}">
-                    ${sign}€${Math.abs(transaction.amount).toFixed(2)}
-                </span>
-                <button class="delete-btn" onclick="removeTransaction(${transaction.id})">X</button>
-            `;
-            list.appendChild(item);
-        }
-        // Aggiorna saldo, entrate e uscite
-        function updateValues() {
-            const amounts = transactions.map(transaction => transaction.amount);
-            const total = amounts.reduce((acc, item) => (acc += item), 0).toFixed(2);
-            const income = amounts.filter(item => item > 0).reduce((acc, item) => (acc += item), 0).toFixed(2);
-            const expense = (amounts.filter(item => item < 0).reduce((acc, item) => (acc += item), 0) * -1).toFixed(2);
-            balance.innerText = '€' + total;
-            money_plus.innerText = '+€' + income;
-            money_minus.innerText = '-€' + expense;
-        }
-        // Rimuovi transazione
-        function removeTransaction(id) {
-            transactions = transactions.filter(transaction => transaction.id !== id);
-            updateLocalStorage();
-            init();
-        }
-        // Salva nel Local Storage
-        function updateLocalStorage() {
-            localStorage.setItem('transactions', JSON.stringify(transactions));
-        }
-        // Inizializza l'app
-        function init() {
-            list.innerHTML = '';
-            transactions.forEach(addTransactionDOM);
-            updateValues();
-        }
-        init();
-        form.addEventListener('submit', addTransaction);
+        // ==============================================
+        // MODAL & FORM AGGIUNTA
+        // ==============================================
+        const modal = document.getElementById('modal');
+        const form = document.getElementById('add-client-form');
+        function openModal() { modal.style.display = 'flex'; }
+        function closeModal() { modal.style.display = 'none'; form.reset(); }
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const newClient = {
+                id: Date.now(), // ID univoco temporale
+                name: document.getElementById('client-name').value,
+                email: document.getElementById('client-email').value,
+                phone: document.getElementById('client-phone').value,
+                status: document.getElementById('client-status').value
+            };
+            
+            clients.push(newClient); // Aggiunge all'array
+            localStorage.setItem('crm_clients_v2', JSON.stringify(clients)); // Salva in memoria
+            renderTable(); // Ricarica interfaccia
+            closeModal(); // Chiude popup
+            
+            // Porta l'utente sulla scheda clienti se non c'era
+            document.querySelectorAll('.sidebar-menu li')[1].click();
+        });
+        // Avvio iniziale
+        renderTable();
     </script>
 </body>
 </html>
