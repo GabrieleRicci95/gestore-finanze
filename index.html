@@ -1,1 +1,210 @@
 
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestore Finanze PRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        /* --- CARDS --- */
+        .card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .balance-card {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            color: white;
+            text-align: center;
+            padding: 30px 20px;
+        }
+        .balance-title {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .balance-amount {
+            font-size: 3rem;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        .summary div { width: 50%; }
+        .summary-title { font-size: 0.9rem; opacity: 0.8; margin-bottom: 5px;}
+        .summary-val { font-size: 1.2rem; font-weight: 600; margin:0;}
+        .val-plus { color: #a7f3d0; } 
+        .val-minus { color: #fecaca; } 
+
+        /* --- FORM --- */
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: var(--text-muted);
+        }
+        input {
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-family: inherit;
+            outline: none;
+            transition: border 0.3s;
+        }
+        input:focus { border-color: var(--primary); }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        .btn:hover { background: var(--primary-hover); }
+
+        /* --- LISTA MOVIMENTI --- */
+        .transaction-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid;
+            transition: transform 0.2s;
+        }
+        .transaction-item:hover { transform: translateX(5px); }
+        .item-plus { border-left-color: var(--success); }
+        .item-minus { border-left-color: var(--danger); }
+        
+        .item-desc { font-weight: 500; color: var(--text-main); flex: 1; }
+        .item-amount { font-weight: 600; }
+        .amount-plus { color: var(--success); }
+        .amount-minus { color: var(--danger); }
+        
+        .delete-btn {
+            background: #f3f4f6;
+            color: var(--danger);
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-left: 15px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .delete-btn:hover { background: #fee2e2; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>💰 Gestore Finanze</h2>
+
+        <div class="card balance-card">
+            <p class="balance-title">Saldo Attuale</p>
+            <h1 class="balance-amount" id="balance">€0.00</h1>
+            
+            <div class="summary">
+                <div>
+                    <p class="summary-title">Entrate</p>
+                    <p class="summary-val val-plus" id="money-plus">+€0.00</p>
+                </div>
+                <div>
+                    <p class="summary-title">Uscite</p>
+                    <p class="summary-val val-minus" id="money-minus">-€0.00</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; margin-bottom: 15px; color: #1f2937;">Nuova Transazione</h3>
+            <form id="form">
+                <div class="form-group">
+                    <label for="text">Descrizione (es. Stipendio, Spesa)</label>
+                    <input type="text" id="text" placeholder="Inserisci descrizione..." required>
+                </div>
+                <div class="form-group">
+                    <label for="amount">Importo (Usa il segno - per le uscite)</label>
+                    <input type="number" id="amount" placeholder="Es. -50 oppure 1500" step="0.01" required>
+                </div>
+                <button class="btn" type="submit">Aggiungi Movimento</button>
+            </form>
+        </div>
+
+        <h3 style="margin-bottom: 15px; color: #1f2937;">Storico Movimenti</h3>
+        <ul id="list" class="transaction-list">
+            <!-- I movimenti verranno generati qui -->
+        </ul>
+    </div>
+
+    <script>
+        const balance = document.getElementById('balance');
+        const money_plus = document.getElementById('money-plus');
+        const money_minus = document.getElementById('money-minus');
+        const list = document.getElementById('list
