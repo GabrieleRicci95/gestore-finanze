@@ -154,6 +154,7 @@
 <body>
     <div class="container">
         <h2>💰 Gestore Finanze</h2>
+        <!-- CARD SALDO TOTALE -->
         <div class="card balance-card">
             <p class="balance-title">Saldo Attuale</p>
             <h1 class="balance-amount" id="balance">€0.00</h1>
@@ -169,27 +170,103 @@
                 </div>
             </div>
         </div>
+        <!-- FORM INSERIMENTO -->
         <div class="card">
             <h3 style="margin-top: 0; margin-bottom: 15px; color: #1f2937;">Nuova Transazione</h3>
             <form id="form">
                 <div class="form-group">
-                    <label for="text">Descrizione (es. Stipendio, Spesa)</label>
-                    <input type="text" id="text" placeholder="Inserisci descrizione..." required>
+                    <label for="text">Descrizione (es. Stipendio, Spesa al super)</label>
+                    <input type="text" id="text" placeholder="Cosa hai comprato/guadagnato?" required>
                 </div>
                 <div class="form-group">
                     <label for="amount">Importo (Usa il segno - per le uscite)</label>
-                    <input type="number" id="amount" placeholder="Es. -50 oppure 1500" step="0.01" required>
+                    <input type="number" id="amount" placeholder="-50 oppure 1500" step="0.01" required>
                 </div>
                 <button class="btn" type="submit">Aggiungi Movimento</button>
             </form>
         </div>
+        <!-- STORICO MOVIMENTI -->
         <h3 style="margin-bottom: 15px; color: #1f2937;">Storico Movimenti</h3>
         <ul id="list" class="transaction-list">
-            <!-- I movimenti verranno generati qui -->
+            <!-- I movimenti verranno generati qui da Javascript -->
         </ul>
     </div>
-    <!-- LOGICA DI SALVATAGGIO -->
+    <!-- LOGICA JAVASCRIPT CON MEMORIA (LOCAL STORAGE) -->
     <script>
         const balance = document.getElementById('balance');
         const money_plus = document.getElementById('money-plus');
         const money_minus = document.getElementById('money-minus');
+        const list = document.getElementById('list');
+        const form = document.getElementById('form');
+        const text = document.getElementById('text');
+        const amount = document.getElementById('amount');
+        // Controlla se ci sono transazioni salvate in memoria
+        const localStorageTransactions = JSON.parse(localStorage.getItem('transactions'));
+        let transactions = localStorage.getItem('transactions') !== null ? localStorageTransactions : [];
+        // Aggiungi nuova transazione
+        function addTransaction(e) {
+            e.preventDefault();
+            if (text.value.trim() === '' || amount.value.trim() === '') {
+                alert('Aggiungi sia una descrizione che un importo');
+            } else {
+                const transaction = {
+                    id: generateID(),
+                    text: text.value,
+                    amount: +amount.value
+                };
+                transactions.push(transaction);
+                addTransactionDOM(transaction);
+                updateValues();
+                updateLocalStorage();
+                text.value = '';
+                amount.value = '';
+            }
+        }
+        // Genera un ID casuale
+        function generateID() { return Math.floor(Math.random() * 100000000); }
+        // Aggiungi la transazione all'interfaccia HTML
+        function addTransactionDOM(transaction) {
+            const sign = transaction.amount < 0 ? '-' : '+';
+            const item = document.createElement('li');
+            item.classList.add('transaction-item');
+            item.classList.add(transaction.amount < 0 ? 'item-minus' : 'item-plus');
+            item.innerHTML = `
+                <span class="item-desc">${transaction.text}</span>
+                <span class="item-amount ${transaction.amount < 0 ? 'amount-minus' : 'amount-plus'}">
+                    ${sign}€${Math.abs(transaction.amount).toFixed(2)}
+                </span>
+                <button class="delete-btn" onclick="removeTransaction(${transaction.id})">X</button>
+            `;
+            list.appendChild(item);
+        }
+        // Aggiorna saldo, entrate e uscite
+        function updateValues() {
+            const amounts = transactions.map(transaction => transaction.amount);
+            const total = amounts.reduce((acc, item) => (acc += item), 0).toFixed(2);
+            const income = amounts.filter(item => item > 0).reduce((acc, item) => (acc += item), 0).toFixed(2);
+            const expense = (amounts.filter(item => item < 0).reduce((acc, item) => (acc += item), 0) * -1).toFixed(2);
+            balance.innerText = '€' + total;
+            money_plus.innerText = '+€' + income;
+            money_minus.innerText = '-€' + expense;
+        }
+        // Rimuovi transazione
+        function removeTransaction(id) {
+            transactions = transactions.filter(transaction => transaction.id !== id);
+            updateLocalStorage();
+            init();
+        }
+        // Salva nel Local Storage
+        function updateLocalStorage() {
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+        }
+        // Inizializza l'app
+        function init() {
+            list.innerHTML = '';
+            transactions.forEach(addTransactionDOM);
+            updateValues();
+        }
+        init();
+        form.addEventListener('submit', addTransaction);
+    </script>
+</body>
+</html>
