@@ -57,13 +57,7 @@
         @media (max-width: 768px) { .sidebar { position: absolute; left: -250px; height: 100vh; } .sidebar.open { left: 0; } }
     </style>
 </head>
-Passaggio 2
-Subito sotto a quello che hai incollato (quindi sulla riga successiva), incolla questo BLOCCO 2:
-
-html
-
-
-<body>
+    <body>
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header"><i class="fas fa-cube" style="color: var(--primary);"></i> CRM Pro</div>
@@ -154,9 +148,11 @@ html
                 type: 'doughnut', data: { labels: ['Attivi', 'In Trattativa'], datasets: [{ data: [0, 0], backgroundColor: ['#10b981', '#f59e0b'], borderWidth: 0 }] },
                 options: { responsive: true, maintainAspectRatio: false }
             });
+
             // DATI CLIENTI
             const defaultClients = [{ id: 1, name: "Tech Solutions Srl", email: "info@techsolutions.it", phone: "06 1234567", status: "active" }, { id: 2, name: "Mario Rossi Architetto", email: "mario.rossi@studio.it", phone: "333 9876543", status: "pending" }];
             window.clients = JSON.parse(localStorage.getItem('crm_clients_v3')) || defaultClients;
+
             window.renderTable = function() {
                 const tbody = document.getElementById('clients-table-body'); tbody.innerHTML = '';
                 let activeCount = 0, pendingCount = 0;
@@ -169,9 +165,11 @@ html
                 window.pieChart.data.datasets[0].data = [activeCount, pendingCount]; window.pieChart.update();
                 localStorage.setItem('crm_clients_v3', JSON.stringify(window.clients));
             };
+
             window.deleteClient = function(id) {
                 if(confirm("Eliminare cliente?")) { window.clients = window.clients.filter(c => c.id !== id); window.renderTable(); }
             };
+
             document.getElementById('add-client-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 window.clients.push({ id: Date.now(), name: document.getElementById('client-name').value, email: document.getElementById('client-email').value, phone: document.getElementById('client-phone').value, status: document.getElementById('client-status').value });
